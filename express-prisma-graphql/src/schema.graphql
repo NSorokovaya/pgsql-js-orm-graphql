@@ -1,0 +1,218 @@
+# GraphQL Types
+type ChatMember {
+  chatId: ID!
+  userId: ID!
+  joinedAt: DateTime
+  chat: Chat!
+  user: User!
+}
+
+type Chat {
+  id: ID!
+  name: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  deletedAt: DateTime
+  chatMembers: [ChatMember!]!
+  messages: [Message!]!
+}
+
+type Comment {
+  id: ID!
+  postId: ID!
+  userId: ID!
+  content: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  deletedAt: DateTime
+  post: Post!
+  user: User!
+}
+
+type FollowRequest {
+  id: ID!
+  followerId: ID!
+  followeeId: ID!
+  status: String!
+  createdAt: DateTime
+  updatedAt: DateTime
+  follower: User!
+  followee: User!
+}
+
+type FriendRequest {
+  id: ID!
+  requesterId: ID!
+  receiverId: ID!
+  status: String!
+  createdAt: DateTime
+  updatedAt: DateTime
+  requester: User!
+  receiver: User!
+}
+
+type Message {
+  id: ID!
+  chatId: ID!
+  senderId: ID!
+  type: String!
+  content: String!
+  createdAt: DateTime
+  updatedAt: DateTime
+  deletedAt: DateTime
+  chat: Chat!
+  sender: User!
+}
+
+type PostView {
+  id: ID!
+  postId: ID!
+  userId: ID
+  viewedAt: DateTime
+  post: Post!
+  user: User
+}
+
+type Post {
+  id: ID!
+  userId: ID!
+  title: String!
+  content: String
+  createdAt: DateTime
+  updatedAt: DateTime
+  deletedAt: DateTime
+  comments: [Comment!]!
+  postViews: [PostView!]!
+  user: User!
+  reactionsToPost: [ReactionToPost!]!
+}
+
+type ReactionToPost {
+  id: ID!
+  userId: ID!
+  postId: ID!
+  createdAt: DateTime
+  updatedAt: DateTime
+  deletedAt: DateTime
+  post: Post!
+  user: User!
+}
+
+type UserAvatar {
+  id: ID!
+  userId: ID
+  avatarUrl: String!
+  createdAt: DateTime
+  updatedAt: DateTime
+  deletedAt: DateTime
+  user: User
+}
+
+type UserEmail {
+  id: ID!
+  userId: ID!
+  email: String!
+  isVerified: Boolean
+  createdAt: DateTime
+  updatedAt: DateTime
+  deletedAt: DateTime
+  user: User!
+}
+
+type UserPhone {
+  id: ID!
+  userId: ID!
+  phone: String!
+  isVerified: Boolean
+  createdAt: DateTime
+  updatedAt: DateTime
+  deletedAt: DateTime
+  user: User!
+}
+
+type User {
+  id: ID!
+  username: String!
+  password: String!
+  isAdmin: Boolean
+  createdAt: DateTime
+  updatedAt: DateTime
+  deletedAt: DateTime
+  chatMembers: [ChatMember!]!
+  comments: [Comment!]!
+  followRequestsAsFollowee: [FollowRequest!]!
+  followRequestsAsFollower: [FollowRequest!]!
+  friendRequestsAsReceiver: [FriendRequest!]!
+  friendRequestsAsRequester: [FriendRequest!]!
+  messages: [Message!]!
+  postViews: [PostView!]!
+  posts: [Post!]!
+  reactionsToPost: [ReactionToPost!]!
+  userAvatar: UserAvatar
+  userEmails: [UserEmail!]!
+  userPhones: [UserPhone!]!
+}
+
+# Queries
+type Query {
+  user(id: ID!): User
+  users: [User!]!
+  chat(id: ID!): Chat
+  chats: [Chat!]!
+  post(id: ID!): Post
+  posts: [Post!]!
+  comment(id: ID!): Comment
+  comments: [Comment!]!
+  message(id: ID!): Message
+  messages: [Message!]!
+  followRequest(id: ID!): FollowRequest
+  followRequests: [FollowRequest!]!
+  friendRequest(id: ID!): FriendRequest
+  friendRequests: [FriendRequest!]!
+}
+
+# Mutations
+type Mutation {
+  createUser(username: String!, password: String!, isAdmin: Boolean): User!
+  updateUser(id: ID!, username: String, password: String, isAdmin: Boolean): User!
+  deleteUser(id: ID!): User!
+
+  createChat(name: String): Chat!
+  updateChat(id: ID!, name: String): Chat!
+  deleteChat(id: ID!): Chat!
+
+  createPost(userId: ID!, title: String!, content: String): Post!
+  updatePost(id: ID!, title: String, content: String): Post!
+  deletePost(id: ID!): Post!
+
+  createComment(postId: ID!, userId: ID!, content: String): Comment!
+  updateComment(id: ID!, content: String): Comment!
+  deleteComment(id: ID!): Comment!
+
+  createMessage(chatId: ID!, senderId: ID!, type: String!, content: String!): Message!
+  updateMessage(id: ID!, content: String): Message!
+  deleteMessage(id: ID!): Message!
+
+  createFollowRequest(followerId: ID!, followeeId: ID!, status: String!): FollowRequest!
+  updateFollowRequest(id: ID!, status: String!): FollowRequest!
+  deleteFollowRequest(id: ID!): FollowRequest!
+
+  createFriendRequest(requesterId: ID!, receiverId: ID!, status: String!): FriendRequest!
+  updateFriendRequest(id: ID!, status: String!): FriendRequest!
+  deleteFriendRequest(id: ID!): FriendRequest!
+
+  createUserAvatar(userId: ID!, avatarUrl: String!): UserAvatar!
+  updateUserAvatar(id: ID!, avatarUrl: String!): UserAvatar!
+  deleteUserAvatar(id: ID!): UserAvatar!
+
+  createUserEmail(userId: ID!, email: String!, isVerified: Boolean): UserEmail!
+  updateUserEmail(id: ID!, email: String, isVerified: Boolean): UserEmail!
+  deleteUserEmail(id: ID!): UserEmail!
+
+  createUserPhone(userId: ID!, phone: String!, isVerified: Boolean): UserPhone!
+  updateUserPhone(id: ID!, phone: String, isVerified: Boolean): UserPhone!
+  deleteUserPhone(id: ID!): UserPhone!
+}
+
+# Custom Scalars
+scalar DateTime

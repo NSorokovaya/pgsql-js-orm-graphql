@@ -2,8 +2,8 @@ const path = require("node:path");
 const fs = require("node:fs/promises");
 
 const { client } = require("../client");
-const { writeSql } = require("../db:seed/services");
-const { withTimeMeasureAsync } = require("../db:seed/utils");
+const { writeSql } = require("../seed/services");
+const { withTimeMeasureAsync } = require("../seed/utils");
 
 (async () => {
   try {

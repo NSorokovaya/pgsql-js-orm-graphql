@@ -20,8 +20,7 @@ const resolvers = {
       context: Context
     ) => {
       // if (!context.user) throw new Error("Not authorized");
-      const { first = 10, after, last, before } = args;
-      const where = {};
+      const { first = 10, after } = args;
 
       const users = await prisma.users.findMany({
         take: first + 1,
@@ -45,9 +44,22 @@ const resolvers = {
         },
       };
     },
-    user: (_parent: any, args: { id: string }, context: Context) => {
+    user: async (_parent: any, args: { id: string }, context: Context) => {
       // if (!context.user) throw new Error("Not authorized");
-      return prisma.users.findUnique({ where: { id: args.id } });
+      const user = await prisma.users.findUnique({
+        where: { id: args.id },
+        select: {
+          username: true,
+          is_admin: true,
+          created_at: true,
+        },
+      });
+      if (!user) throw new Error("User hasn't been found");
+      return {
+        username: user.username,
+        isAdmin: user.is_admin,
+        createdAt: user.created_at,
+      };
     },
 
     chats: (_parent: any, args: { id: string }, context: Context) => {
@@ -77,18 +89,64 @@ const resolvers = {
     },
   },
   User: {
-    posts: async (
-      user: any,
-      _: any,
-      { parent }: { parent: any },
-      context: Context
-    ) => {
+    posts: async (user: any, _: any) => {
       // if (!context.user) throw new Error("Not authorized");
 
       return await prisma.posts.findMany({
         where: {
           user_id: user.id,
         },
+      });
+    },
+    postCount: async (user: any) => {
+      return await prisma.posts.count({ where: { user_id: user.id } });
+    },
+    commentsCount: async (user: any) => {
+      return await prisma.comments.count({ where: { user_id: user.id } });
+    },
+    reactionsCount: async (user: any) => {
+      return await prisma.reactions_to_posts.count({
+        where: { user_id: user.id },
+      });
+    },
+    postViewsCount: async (user: any) => {
+      return await prisma.post_views.count({ where: { user_id: user.id } });
+    },
+    friends: async (user: any) => {
+      const friendRequests = await prisma.friend_requests.findMany({
+        where: {
+          OR: [
+            { receiver_id: user.id, status: "accepted" },
+            { requester_id: user.id, status: "accepted" },
+          ],
+        },
+      });
+      const friendIds = friendRequests.map((request) =>
+        request.receiver_id === user.id
+          ? request.requester_id
+          : request.receiver_id
+      );
+
+      const friends = await prisma.users.findMany({
+        where: { id: { in: friendIds } },
+        select: { id: true, username: true },
+      });
+      return friends;
+    },
+    followees: async (user: any) => {
+      const followees = await prisma.follow_requests.findMany({
+        where: { follower_id: user.id, status: "accepted" },
+      });
+      return await prisma.users.findMany({
+        where: { id: { in: followees.map((f) => f.followee_id) } },
+      });
+    },
+    followers: async (user: any) => {
+      const followers = await prisma.follow_requests.findMany({
+        where: { followee_id: user.id, status: "accepted" },
+      });
+      return await prisma.users.findMany({
+        where: { id: { in: followers.map((f) => f.follower_id) } },
       });
     },
   },

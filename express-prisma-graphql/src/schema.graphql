@@ -151,6 +151,13 @@ type User {
   userAvatar: UserAvatar
   userEmails: [UserEmail!]!
   userPhones: [UserPhone!]!
+  postCount: Int!
+  commentsCount: Int!
+  reactionsCount: Int!
+  postViewsCount: Int!
+  friends: [User!]!
+  followees: [User!]!
+  followers: [User!]!
 }
 
 # Queries

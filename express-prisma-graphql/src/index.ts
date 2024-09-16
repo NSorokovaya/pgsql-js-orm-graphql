@@ -14,28 +14,53 @@ const typeDefs = readFileSync(path.join(__dirname, "schema.graphql"), "utf8");
 
 const resolvers = {
   Query: {
-    users: (context: Context) => {
-      if (!context.user) throw new Error("Not authorized");
-      prisma.users.findMany({
+    users: async (
+      _parent: any,
+      args: { first?: number; after?: string; last?: number; before?: string },
+      context: Context
+    ) => {
+      // if (!context.user) throw new Error("Not authorized");
+      const { first = 10, after, last, before } = args;
+      const where = {};
+
+      const users = await prisma.users.findMany({
+        take: first + 1,
+        skip: after ? 1 : 0,
+        cursor: after ? { id: after } : undefined,
+        orderBy: { id: "asc" },
         include: { posts: true },
       });
+      const hasNextPage = users.length > first;
+      const edges = users.slice(0, first).map((user) => ({
+        node: user,
+        cursor: user.id,
+      }));
+      return {
+        edges,
+        pageInfo: {
+          hasNextPage,
+          hasPreviousPage: Boolean(after),
+          startCursor: edges[0]?.cursor || null,
+          endCursor: edges[edges.length - 1]?.cursor || null,
+        },
+      };
     },
     user: (_parent: any, args: { id: string }, context: Context) => {
-      if (!context.user) throw new Error("Not authorized");
-      prisma.users.findUnique({ where: { id: args.id } });
+      // if (!context.user) throw new Error("Not authorized");
+      return prisma.users.findUnique({ where: { id: args.id } });
     },
 
     chats: (_parent: any, args: { id: string }, context: Context) => {
-      if (!context.user) throw new Error("Not authorized");
-      prisma.chats.findMany();
+      // if (!context.user) throw new Error("Not authorized");
+      return prisma.chats.findMany();
     },
     posts: (context: Context) => {
-      if (!context.user) throw new Error("Not authorized");
-      prisma.posts.findMany();
+      // if (!context.user) throw new Error("Not authorized");
+      return prisma.posts.findMany();
     },
     post: (_parent: any, args: { id: string }, context: Context) => {
-      if (!context.user) throw new Error("Not authorized");
-      prisma.posts.findUnique({
+      // if (!context.user) throw new Error("Not authorized");
+      return prisma.posts.findUnique({
         where: { id: args.id },
         include: { users: true },
       });
@@ -43,7 +68,7 @@ const resolvers = {
   },
   Post: {
     user: async (post: any, _: any, context: Context) => {
-      if (!context.user) throw new Error("Not authorized");
+      // if (!context.user) throw new Error("Not authorized");
 
       return await prisma.users.findUnique({
         where: { id: post.user_id },
@@ -58,7 +83,7 @@ const resolvers = {
       { parent }: { parent: any },
       context: Context
     ) => {
-      if (!context.user) throw new Error("Not authorized");
+      // if (!context.user) throw new Error("Not authorized");
 
       return await prisma.posts.findMany({
         where: {
@@ -79,7 +104,7 @@ const resolvers = {
       args: { userId: string; title: string; content: string },
       context: Context
     ) => {
-      if (!context.user) throw new Error("Not authorized");
+      // if (!context.user) throw new Error("Not authorized");
       const post = await prisma.posts.create({
         data: {
           title: args.title,
@@ -109,20 +134,33 @@ const resolvers = {
       });
       return { token, user };
     },
+    deleteUser: async (_parent: any, arg: { id: string }) => {
+      const user = await prisma.users.findUnique({
+        where: { id: arg.id },
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+      await prisma.users.delete({
+        where: { id: arg.id },
+      });
+      return user;
+    },
   },
 };
 
 async function startApolloServer() {
   const app = express();
-  app.use(authMiddleware);
+  // app.use(authMiddleware);
 
   const server = new ApolloServer({
     typeDefs,
     resolvers,
-    context: ({ req }) => {
-      // @ts-ignore
-      return { user: req.user };
-    },
+    // context: ({ req }) => {
+    //   // @ts-ignore
+    //   return { user: req.user };
+    // },
   });
 
   await server.start();

@@ -156,7 +156,7 @@ type User {
 # Queries
 type Query {
   user(id: ID!): User
-  users: [User!]!
+  users(first: Int, after: String): UserConnection!
   chat(id: ID!): Chat
   chats: [Chat!]!
   post(id: ID!): Post
@@ -238,5 +238,23 @@ type token {
   token: String!
   user: User!
 }
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UserEdge {
+  node: User!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
 # Custom Scalars
 scalar DateTime

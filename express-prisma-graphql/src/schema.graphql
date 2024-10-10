@@ -151,12 +151,19 @@ type User {
   userAvatar: UserAvatar
   userEmails: [UserEmail!]!
   userPhones: [UserPhone!]!
+  postCount: Int!
+  commentsCount: Int!
+  reactionsCount: Int!
+  postViewsCount: Int!
+  friends: [User!]!
+  followees: [User!]!
+  followers: [User!]!
 }
 
 # Queries
 type Query {
   user(id: ID!): User
-  users: [User!]!
+  users(first: Int, after: String): UserConnection!
   chat(id: ID!): Chat
   chats: [Chat!]!
   post(id: ID!): Post
@@ -174,7 +181,12 @@ type Query {
 # Mutations
 type Mutation {
   createUser(username: String!, password: String!, isAdmin: Boolean): User!
-  updateUser(id: ID!, username: String, password: String, isAdmin: Boolean): User!
+  updateUser(
+    id: ID!
+    username: String
+    password: String
+    isAdmin: Boolean
+  ): User!
   deleteUser(id: ID!): User!
 
   createChat(name: String): Chat!
@@ -189,15 +201,28 @@ type Mutation {
   updateComment(id: ID!, content: String): Comment!
   deleteComment(id: ID!): Comment!
 
-  createMessage(chatId: ID!, senderId: ID!, type: String!, content: String!): Message!
+  createMessage(
+    chatId: ID!
+    senderId: ID!
+    type: String!
+    content: String!
+  ): Message!
   updateMessage(id: ID!, content: String): Message!
   deleteMessage(id: ID!): Message!
 
-  createFollowRequest(followerId: ID!, followeeId: ID!, status: String!): FollowRequest!
+  createFollowRequest(
+    followerId: ID!
+    followeeId: ID!
+    status: String!
+  ): FollowRequest!
   updateFollowRequest(id: ID!, status: String!): FollowRequest!
   deleteFollowRequest(id: ID!): FollowRequest!
 
-  createFriendRequest(requesterId: ID!, receiverId: ID!, status: String!): FriendRequest!
+  createFriendRequest(
+    requesterId: ID!
+    receiverId: ID!
+    status: String!
+  ): FriendRequest!
   updateFriendRequest(id: ID!, status: String!): FriendRequest!
   deleteFriendRequest(id: ID!): FriendRequest!
 
@@ -212,6 +237,30 @@ type Mutation {
   createUserPhone(userId: ID!, phone: String!, isVerified: Boolean): UserPhone!
   updateUserPhone(id: ID!, phone: String, isVerified: Boolean): UserPhone!
   deleteUserPhone(id: ID!): UserPhone!
+
+  login(username: String!, password: String!): token!
+}
+
+type token {
+  token: String!
+  user: User!
+}
+
+type UserConnection {
+  edges: [UserEdge!]!
+  pageInfo: PageInfo!
+}
+
+type UserEdge {
+  node: User!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
 }
 
 # Custom Scalars

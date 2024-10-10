@@ -13,5 +13,3 @@ export const authMiddleware = async (req: any, res: any, next: any) => {
 
   next();
 };
-//чтобы заглядывал в бд и возвращал ошибки
-//проверка нет пользователя(404 и 403)
